@@ -1,0 +1,24 @@
+{
+    "name": "aegis",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/0xYurii/Aegis.git"
+    },
+    "keywords": [],
+    "author": "Younes Hebaiche",
+    "license": "ISC",
+    "type": "commonjs",
+    "bugs": {
+        "url": "https://github.com/0xYurii/Aegis/issues"
+    },
+    "homepage": "https://github.com/0xYurii/Aegis#readme",
+    "dependencies": {
+        "@types/express": "^5.0.6"
+    }
+}

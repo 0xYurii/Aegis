@@ -19,6 +19,8 @@
     },
     "homepage": "https://github.com/0xYurii/Aegis#readme",
     "dependencies": {
-        "@types/express": "^5.0.6"
+        "@types/express": "^5.0.6",
+        "express": "^5.2.1",
+        "nodemon": "^3.1.14"
     }
 }

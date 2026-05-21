@@ -5,12 +5,15 @@ import { routes } from "../config/routes.config";
 const router = Router();
 
 router.all("*", async (req: Request, res: Response) => {
-    let targetUrl = process.env.TARGET_URL || "http://localhost:3001/";
+    let targetUrl = "";
     let found = false;
     for (const route of routes) {
-        if (req.originalUrl.startsWith(route.path))
-            targetUrl = targetUrl + req.originalUrl;
-        found = true;
+        if (req.originalUrl.startsWith(route.path)) {
+            const rest = req.originalUrl.replace(route.path, "");
+            targetUrl = route.target + rest;
+            found = true;
+            break;
+        }
     }
 
     if (!found) return res.status(404).json({ message: "Route not found" });

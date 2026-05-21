@@ -1,16 +1,18 @@
 export const routes = [
     {
         path: "/users",
-        target: "user-service",
+        target: "http://localhost:3001",
         plugins: {
             auth: true,
+            rateLimit: { max: 10, window: 60 },
         },
     },
     {
         path: "/product",
-        target: "target-service",
+        target: "http://localhost:3002",
         plugins: {
             auth: true,
+            rateLimit: { max: 10, window: 60 },
         },
     },
 ];

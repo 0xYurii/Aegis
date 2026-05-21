@@ -7,7 +7,7 @@ export const routes = [
         },
     },
     {
-        path: "product",
+        path: "/product",
         target: "target-service",
         plugins: {
             auth: true,

@@ -5,24 +5,17 @@ import { routes } from "../config/routes.config";
 const router = Router();
 
 router.all("*", async (req: Request, res: Response) => {
-    let targetUrl = "";
-    let found = false;
-    for (const route of routes) {
-        if (req.originalUrl.startsWith(route.path)) {
-            const rest = req.originalUrl.replace(route.path, "");
-            targetUrl = route.target + rest;
-            found = true;
-            break;
-        }
-    }
+    const target = res.locals["target"];
 
-    if (!found) return res.status(404).json({ message: "Route not found" });
+    if (!target) return res.status(404).json({ message: "Route not found" });
 
     const forwardHeaders: Record<string, string> = {};
     for (const [key, value] of Object.entries(req.headers)) {
         if (typeof value === "string") forwardHeaders[key] = value;
     }
     forwardHeaders["x-user-id"] = String(res.locals["userId"] ?? "anonymous");
+
+    const targetUrl = target + req.url;
 
     try {
         res.locals["targetUrl"] = targetUrl;

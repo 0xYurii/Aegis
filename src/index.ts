@@ -1,4 +1,4 @@
-import express, { Application } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import gateWayRouter from "./core/gateway";
 import { routes } from "./config/routes.config";
@@ -15,6 +15,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 for (const route of routes) {
     const middleware = [];
+
+    middleware.push((_req: Request, res: Response, next: NextFunction) => {
+        res.locals["target"] = route.target;
+        next();
+    });
+
     if (route.plugins.auth) middleware.push(auth);
     if (route.plugins.rateLimit)
         middleware.push(rateLimiter(route.plugins.rateLimit));

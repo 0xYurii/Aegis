@@ -1,17 +1,15 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 
-export function loggerPlug(
-    req: Request,
-    res: Response,
-    targetUrl: string,
-    status: number,
-): any {
+export const loggerPlug = (req: Request, res: Response, next: NextFunction) => {
     const start = Date.now();
-    let duration = 0;
+
     res.on("finish", () => {
-        duration = Date.now() - start;
+        const duration = Date.now() - start;
+        const targetUrl = res.locals["targetUrl"] ?? req.originalUrl;
         console.log(
-            `Method: ${req.method}, Path: ${targetUrl}, Status: ${status}, duration: ${duration}`,
+            `[${req.method}] ${targetUrl} → ${res.statusCode} (${duration}ms)`,
         );
     });
-}
+
+    next();
+};

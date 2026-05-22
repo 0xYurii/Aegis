@@ -5,6 +5,7 @@ import { routes } from "./config/routes.config";
 import { auth } from "./plugins/auth";
 import { loggerPlug } from "./plugins/logger";
 import { rateLimiter } from "./plugins/rate-limiter";
+import { loadBalancer } from "./plugins/load-balancer";
 
 const app: Application = express();
 const PORT = process.env.PORT || 8000;
@@ -16,10 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 for (const route of routes) {
     const middleware = [];
 
-    middleware.push((_req: Request, res: Response, next: NextFunction) => {
-        res.locals["target"] = route.target;
-        next();
-    });
+    middleware.push(loadBalancer(route.target));
 
     if (route.plugins.auth) middleware.push(auth);
     if (route.plugins.rateLimit)

@@ -1,6 +1,5 @@
 import { Router, type Request, type Response } from "express";
 import axios from "axios";
-import { routes } from "../config/routes.config";
 
 const router = Router();
 

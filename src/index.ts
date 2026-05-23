@@ -6,6 +6,7 @@ import { auth } from "./plugins/auth";
 import { loggerPlug } from "./plugins/logger";
 import { rateLimiter } from "./plugins/rate-limiter";
 import { loadBalancer } from "./plugins/load-balancer";
+import { getStats } from "./dashboard/server";
 
 const app: Application = express();
 const PORT = process.env.PORT || 8000;
@@ -14,6 +15,7 @@ app.use(cors());
 app.use(loggerPlug);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.get("/gateway/stats", getStats(routes));
 for (const route of routes) {
     const middleware = [];
 

@@ -1,4 +1,5 @@
-export const routes = [
+import { RouteConfig } from "../types";
+export const routes: RouteConfig[] = [
     {
         path: "/users",
         target: [

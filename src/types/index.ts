@@ -1,11 +1,9 @@
 export interface RouteConfig {
     path: string;
-    target: string;
-    method?: "GET" | "POST" | "PUT" | "DELETE" | "*";
+    target: string[];
     plugins: {
         auth?: boolean;
-        rateLimit?: { max: number; window: string };
-        logging?: boolean;
+        rateLimit?: { max: number; window: number };
     };
 }
 

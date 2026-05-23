@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import axios from "axios";
+import { recordFailure, recordSuccess } from "../plugins/circuit-breaker";
 
 const router = Router();
 
@@ -25,13 +26,18 @@ router.all("*", async (req: Request, res: Response) => {
             data: req.body,
         });
 
+        if (res.locals["halfOpen"]) {
+            recordSuccess(target);
+        }
+
         return res.status(targetResponse.status).send(targetResponse.data);
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
+            recordFailure(target);
             const status = error.response?.status ?? 502;
-
             return res.status(status).send(error.response?.data);
         }
+        recordFailure(target);
         return res.status(500).send("Upstream request failed");
     }
 });

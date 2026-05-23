@@ -23,3 +23,14 @@ export interface ServiceInstance {
     healthy: boolean;
     requestCount: number;
 }
+
+export interface CircuitState {
+    failures: number;
+    state: "CLOSED" | "OPEN" | "HALF_OPEN";
+    nextTry: number;
+}
+
+export interface RateLimitOptions {
+    max: number;
+    window: number;
+}

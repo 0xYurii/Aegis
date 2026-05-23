@@ -1,10 +1,6 @@
 import redis from "../lib/redis";
 import type { Request, Response, NextFunction } from "express";
-
-interface RateLimitOptions {
-    max: number;
-    window: number;
-}
+import { RateLimitOptions } from "../types";
 
 export const rateLimiter = (options: RateLimitOptions) => {
     return async (req: Request, res: Response, next: NextFunction) => {

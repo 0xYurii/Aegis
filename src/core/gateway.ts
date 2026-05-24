@@ -4,7 +4,7 @@ import { recordFailure, recordSuccess } from "../plugins/circuit-breaker";
 
 const router = Router();
 
-router.all("*", async (req: Request, res: Response) => {
+router.all(/.*/, async (req: Request, res: Response) => {
     const target = res.locals["target"];
 
     if (!target) return res.status(404).json({ message: "Route not found" });

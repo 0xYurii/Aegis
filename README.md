@@ -13,7 +13,7 @@
                         │                                                 │
   ┌────────┐            │  ┌──────────┐   ┌───────────┐   ┌────────────┐  │
   │        │  Request   │  │          │   │   Rate    │   │   Load     │  │
-  │ Client │ ────────►  │  │   Auth   │──►│  Limiter │─► │  Balancer  │  │
+  │ Client │ ────────►  │  │   Auth   │──►│  Limiter  │──►│  Balancer  │  │
   │        │            │  │  Plugin  │   │  (Redis)  │   │            │  │
   └────────┘            │  └──────────┘   └───────────┘   └─────┬──────┘  │
                         │       │                               │         │
@@ -21,16 +21,16 @@
                         │   no token                            │         │
                         └───────────────────────────────────────┼─────────┘
                                                                 │
-                                          ┌─────────────────────┼──────────────────────┐
-                                          │                     │                      │
-                                          ▼                     ▼                      ▼
-                                  ┌──────────────┐    ┌──────────────┐      ┌──────────────┐
-                                  │ user-service │    │ user-service │      │ user-service │
-                                  │  :3001 🟢    │    │  :3002 🟢    │      │  :3003 🔴    │
-                                  │   CLOSED     │    │   CLOSED     │      │    OPEN      │
-                                  └──────────────┘    └──────────────┘      └──────────────┘
-                                                                                (skipped by
-                                                                               circuit breaker)
+                                   ┌────────────────────────────┼───────────────────────┐
+                                   │                            │                       │
+                                   ▼                            ▼                       ▼
+                           ┌──────────────┐           ┌──────────────┐        ┌──────────────┐
+                           │ user-service │           │ user-service │        │ user-service │
+                           │     -1 🟢    │           │     -2 🟢    │        │     -3 🔴    │
+                           │   CLOSED     │           │   CLOSED     │        │    OPEN      │
+                           └──────────────┘           └──────────────┘        └──────────────┘
+                                                                               (skipped by
+                                                                              circuit breaker)
 ```
 
 ### Request Flow
@@ -68,79 +68,130 @@ CLOSED ──(3 failures)──► OPEN ──(60s pass)──► HALF_OPEN
 
 | Plugin | What it does |
 |---|---|
-| **Auth** | Validates JWT on protected routes, injects `x-user-id` header |
-| **Rate Limiter** | Redis-backed per-IP counter, configurable max + window |
+| **Auth** | Validates JWT on protected routes, injects `x-user-id` header downstream |
+| **Rate Limiter** | Redis-backed per-IP counter, configurable max requests + window |
 | **Load Balancer** | Round-robin across service instances, skips unhealthy targets |
 | **Circuit Breaker** | CLOSED → OPEN → HALF_OPEN state machine per instance |
-| **Logger** | Logs method, target, status, duration, and correlation ID |
+| **Logger** | Logs method, target URL, status, duration, and correlation ID |
 | **Stats Endpoint** | `GET /gateway/stats` returns live health snapshot of all instances |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/) and Docker Compose installed
+- That's it — no Node.js needed locally
+
+### Installation
+
+```bash
+# 1. clone the repo
+git clone https://github.com/0xYurii/Aegis
+cd Aegis
+```
+
+2. Create `.env` and fill in your values:
+
+```env
+PORT=8000
+REDIS_URL=redis://redis:6379
+JWT_SECRET=your_secret_key_here
+```
+
+```bash
+# 3. build and start everything (gateway + redis + 6 fake services)
+docker compose up --build
+```
+
+That's it. All 9 containers spin up automatically:
+
+```
+✔ aegis-redis-1             Running
+✔ aegis-user-service-1-1    Running  → :3001
+✔ aegis-user-service-2-1    Running  → :3001
+✔ aegis-user-service-3-1    Running  → :3001
+✔ aegis-product-service-1-1 Running  → :3004
+✔ aegis-product-service-2-1 Running  → :3004
+✔ aegis-product-service-3-1 Running  → :3004
+✔ aegis-gateway-1           Running  → :8000
+```
+
+### Stopping
+
+```bash
+docker compose down
+```
 
 ---
 
 ## Plugin Config (per route)
 
 ```typescript
+// src/config/routes.config.ts
 {
-  path: "/users",
-  target: [
-    "http://localhost:3001",
-    "http://localhost:3002",
-    "http://localhost:3003",
-  ],
-  plugins: {
-    auth: true,
-    rateLimit: { max: 10, window: 60 },
-  },
+    path: "/users",
+    target: [
+        "http://user-service-1:3001",
+        "http://user-service-2:3001",
+        "http://user-service-3:3001",
+    ],
+    plugins: {
+        auth: true,
+        rateLimit: { max: 10, window: 60 },
+    },
 }
-```
-
----
-
-## Getting Started
-
-```bash
-# clone & install
-git clone https://github.com/0xYurii/Aegis
-cd Aegis
-npm install
-
-
-# start Redis
-docker run -d -p 6379:6379 redis:alpine
-
-# run the gateway
-npm run dev
 ```
 
 ---
 
 ## Testing
 
+### Generate a test JWT
+
+You need a token signed with your `JWT_SECRET`. Quick way — run this in Node:
+
+```js
+const jwt = require("jsonwebtoken");
+const token = jwt.sign({ userId: "test-123" }, "your_secret_key_here");
+console.log(token);
+```
+
+### Test the gateway
+
 ```bash
-# test routing
+# no token → 401
 curl http://localhost:8000/users
 
-# test auth rejection
-curl http://localhost:8000/users
-# → 401 Access Denied: No Token Provided!
+# with valid JWT → 200
+curl -H "Authorization: Bearer <your_token>" http://localhost:8000/users
 
-# test with JWT
-curl -H "Authorization: Bearer <token>" http://localhost:8000/users
+# another route
+curl -H "Authorization: Bearer <your_token>" http://localhost:8000/product
 
-# test rate limiting (fire 15 requests fast)
-for i in {1..15}; do curl -H "Authorization: Bearer <token>" http://localhost:8000/users; done
-# → 429 after 10 requests
+# test rate limiting — fire 15 requests fast, 429 kicks in after 10
+for i in {1..15}; do curl -H "Authorization: Bearer <your_token>" http://localhost:8000/users; done
 
-# check live gateway health
+# trigger circuit breaker — hit /fail 3 times to open the circuit
+curl -H "Authorization: Bearer <your_token>" http://localhost:8000/users/fail
+curl -H "Authorization: Bearer <your_token>" http://localhost:8000/users/fail
+curl -H "Authorization: Bearer <your_token>" http://localhost:8000/users/fail
+
+# check live health of all instances
 curl http://localhost:8000/gateway/stats
 ```
 
-**Example stats response:**
+### Stats response example
+
 ```json
 [
-  { "path": "/users", "targetUrl": "http://localhost:3001", "failures": 0, "state": "CLOSED" },
-  { "path": "/users", "targetUrl": "http://localhost:3002", "failures": 3, "state": "OPEN" },
-  { "path": "/users", "targetUrl": "http://localhost:3003", "failures": 0, "state": "CLOSED" }
+  { "path": "/users", "targetUrl": "http://user-service-1:3001", "failures": 3, "state": "OPEN" },
+  { "path": "/users", "targetUrl": "http://user-service-2:3001", "failures": 0, "state": "CLOSED" },
+  { "path": "/users", "targetUrl": "http://user-service-3:3001", "failures": 0, "state": "CLOSED" },
+  { "path": "/product", "targetUrl": "http://product-service-1:3004", "failures": 0, "state": "CLOSED" },
+  { "path": "/product", "targetUrl": "http://product-service-2:3004", "failures": 0, "state": "CLOSED" },
+  { "path": "/product", "targetUrl": "http://product-service-3:3004", "failures": 0, "state": "CLOSED" }
 ]
 ```
 
@@ -148,11 +199,16 @@ curl http://localhost:8000/gateway/stats
 
 ## Stack
 
-- **Runtime:** Node.js + TypeScript
-- **Framework:** Express 5
-- **HTTP Client:** Axios
-- **Cache/State:** Redis (ioredis)
-- **Auth:** JWT (jsonwebtoken)
-- **Tracing:** UUID correlation IDs
+| | |
+|---|---|
+| **Runtime** | Node.js 20 + TypeScript |
+| **Framework** | Express 5 |
+| **HTTP Client** | Axios |
+| **Cache / State** | Redis (ioredis) |
+| **Auth** | JWT (jsonwebtoken) |
+| **Tracing** | UUID correlation IDs (x-request-id) |
+| **Containers** | Docker + Docker Compose |
 
 ---
+
+*Built by [Younes Hebaiche](https://0xyuri.vercel.app)*

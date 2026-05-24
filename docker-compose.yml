@@ -2,16 +2,88 @@ version: "3.8"
 
 services:
     gateway:
-        build: .
+        build:
+            context: .
+            dockerfile: Dockerfile
         ports:
             - "8000:8000"
+        env_file:
+            - .env
         environment:
             - REDIS_URL=redis://redis:6379
-            - JWT_SECRET=super_secret_key_for_testing
+            - PORT=8000
         depends_on:
             - redis
+            - user-service-1
+            - user-service-2
+            - user-service-3
+            - product-service-1
+            - product-service-2
+            - product-service-3
+        networks:
+            - aegis-net
 
     redis:
         image: redis:alpine
         ports:
             - "6379:6379"
+        networks:
+            - aegis-net
+
+    user-service-1:
+        build:
+            context: ./services/user-service
+            dockerfile: Dockerfile
+        environment:
+            - PORT=3001
+        networks:
+            - aegis-net
+
+    user-service-2:
+        build:
+            context: ./services/user-service
+            dockerfile: Dockerfile
+        environment:
+            - PORT=3001
+        networks:
+            - aegis-net
+
+    user-service-3:
+        build:
+            context: ./services/user-service
+            dockerfile: Dockerfile
+        environment:
+            - PORT=3001
+        networks:
+            - aegis-net
+
+    product-service-1:
+        build:
+            context: ./services/product-service
+            dockerfile: Dockerfile
+        environment:
+            - PORT=3004
+        networks:
+            - aegis-net
+
+    product-service-2:
+        build:
+            context: ./services/product-service
+            dockerfile: Dockerfile
+        environment:
+            - PORT=3004
+        networks:
+            - aegis-net
+
+    product-service-3:
+        build:
+            context: ./services/product-service
+            dockerfile: Dockerfile
+        environment:
+            - PORT=3004
+        networks:
+            - aegis-net
+
+networks:
+    aegis-net:
+        driver: bridge

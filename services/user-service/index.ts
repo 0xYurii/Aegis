@@ -20,5 +20,5 @@ app.get("/users/fail", (req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`👤 User Service listening on http://localhost:${PORT}`);
+    console.log(`👤 User Service listening on http://user-service:${PORT}`);
 });

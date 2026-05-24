@@ -19,5 +19,7 @@ app.get("/product/fail", (req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🛒 Product Service listening on http://localhost:${PORT}`);
+    console.log(
+        `🛒 Product Service listening on http://product-service:${PORT}`,
+    );
 });

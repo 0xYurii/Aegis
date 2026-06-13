@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
     push:
@@ -23,24 +23,52 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            - name: Run tests
-              run: npm test
-
-            - name: Run test coverage
+            - name: Run tests with coverage
               run: npm run test:coverage
-              docker:
-                  runs-on: ubuntu-latest
-                  needs: test
 
-                  steps:
-                      - name: Checkout code
-                        uses: actions/checkout@v4
+            - name: Upload coverage report
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage
+                  path: coverage/
 
-                      - name: Build Docker image
-                        run: docker build -t aegis-gateway .
+    docker:
+        runs-on: ubuntu-latest
+        needs: test
+        if: github.ref == 'refs/heads/main'
 
-                      - name: Build user-service image
-                        run: docker build -t aegis-user-service ./services/user-service
+        permissions:
+            contents: read
+            packages: write
 
-                      - name: Build product-service image
-                        run: docker build -t aegis-product-service ./services/product-service
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build and push gateway
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  push: true
+                  tags: ghcr.io/0xyurii/aegis-gateway:latest
+
+            - name: Build and push user-service
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./services/user-service
+                  push: true
+                  tags: ghcr.io/0xyurii/aegis-user-service:latest
+
+            - name: Build and push product-service
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./services/product-service
+                  push: true
+                  tags: ghcr.io/0xyurii/aegis-product-service:latest

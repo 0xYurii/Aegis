@@ -1,6 +1,12 @@
 # Aegis 🛡️
 
-> A production-grade API Gateway built from scratch
+![CI/CD](https://github.com/0xYurii/Aegis/actions/workflows/ci.yml/badge.svg)
+![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
+![Docker](https://img.shields.io/badge/docker-ready-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
+
+> A production-grade API Gateway built from scratch 
+
 > Sits in front of your microservices and handles routing, auth, rate limiting, load balancing, and fault tolerance.
 
 ---
@@ -53,6 +59,7 @@
 
 Aegis implements a full **three-state circuit breaker** per downstream service instance to prevent cascading failures across the system.
 
+When a downstream service starts failing, a naive gateway would keep forwarding requests to it — every one timing out, every user waiting, and the dying service getting hammered even harder under load. Aegis prevents this by tracking each service's health independently in an in-memory state registry (`Map<string, CircuitState>`). After 3 consecutive failures, the circuit **opens** and the load balancer stops routing to that instance entirely. After 60 seconds, the circuit enters a **HALF_OPEN** state and allows exactly one test request through. If it succeeds, the circuit resets to **CLOSED**. If it fails again, it slams back **OPEN** for another 60 seconds.
 
 ```
 CLOSED ──(3 failures)──► OPEN ──(60s pass)──► HALF_OPEN
@@ -90,9 +97,12 @@ CLOSED ──(3 failures)──► OPEN ──(60s pass)──► HALF_OPEN
 # 1. clone the repo
 git clone https://github.com/0xYurii/Aegis
 cd Aegis
+
+# 2. create your .env file
+cp .env.example .env
 ```
 
-2. Create `.env` and fill in your values:
+Open `.env` and fill in your values:
 
 ```env
 PORT=8000
@@ -148,6 +158,16 @@ docker compose down
 
 ## Testing
 
+### Run the test suite
+
+```bash
+npm install
+npm test              # run all tests
+npm run test:coverage # run with coverage report
+```
+
+100% statement/branch/function/line coverage across all plugins (`auth`, `circuit-breaker`, `rate-limiter`).
+
 ### Generate a test JWT
 
 You need a token signed with your `JWT_SECRET`. Quick way — run this in Node:
@@ -197,6 +217,20 @@ curl http://localhost:8000/gateway/stats
 
 ---
 
+## CI/CD
+
+Every push runs the full test suite with coverage. On merge to `main`, Docker images for the gateway and both fake services are built and published to GitHub Container Registry automatically:
+
+```bash
+docker pull ghcr.io/0xyurii/aegis-gateway:latest
+docker pull ghcr.io/0xyurii/aegis-user-service:latest
+docker pull ghcr.io/0xyurii/aegis-product-service:latest
+```
+
+Pipeline: **test → coverage → build → push** — see `.github/workflows/ci.yml`
+
+---
+
 ## Stack
 
 | | |
@@ -207,7 +241,9 @@ curl http://localhost:8000/gateway/stats
 | **Cache / State** | Redis (ioredis) |
 | **Auth** | JWT (jsonwebtoken) |
 | **Tracing** | UUID correlation IDs (x-request-id) |
+| **Testing** | Jest + ts-jest, 100% coverage on plugins |
 | **Containers** | Docker + Docker Compose |
+| **CI/CD** | GitHub Actions → GitHub Container Registry |
 
 ---
 

@@ -15,7 +15,7 @@ router.all(/.*/, async (req: Request, res: Response) => {
     }
     forwardHeaders["x-user-id"] = String(res.locals["userId"] ?? "anonymous");
 
-    const targetUrl = target + req.url;
+    const targetUrl = target + req.originalUrl;
 
     try {
         res.locals["targetUrl"] = targetUrl;

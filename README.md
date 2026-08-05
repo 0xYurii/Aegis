@@ -1,33 +1,51 @@
 # 🛡️ Aegis
 
 <p align="center">
-  <img src="./docs/demo.gif" alt="Aegis Demo" width="900"/>
+  <img src="./docs/demo.gif" alt="Aegis Demo" width="100%" />
 </p>
 
 <p align="center">
 
 ![CI/CD](https://github.com/0xYurii/Aegis/actions/workflows/ci.yml/badge.svg)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
-![Docker](https://img.shields.io/badge/docker-ready-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
+![Docker](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?logo=typescript&logoColor=white)
+![License](https://img.shields.io/github/license/0xYurii/Aegis)
 
 </p>
 
 > **I built Aegis to understand how production API gateways like Kong and Envoy actually work—not by configuring them, but by implementing their core mechanisms from scratch.**
 
-Aegis is a production-inspired API Gateway implementing:
+Aegis is a production-inspired API Gateway that implements JWT authentication, Redis-backed rate limiting, round-robin load balancing, and a three-state circuit breaker in a Dockerized microservice environment.
+
+<p align="center">
+  <a href="https://youtu.be/wBmHa-Dwlzw">
+    <img src="./docs/demo-thumbnail.png" alt="Watch Aegis Demo" width="700"/>
+  </a>
+</p>
+
+<p align="center">
+  <b>🎥 Click the image above to watch the 2-minute walkthrough</b>
+</p>
+
+---
+
+## 🎯 Project Goals
+
+Rather than treating modern API gateways as black boxes, I wanted to understand the engineering decisions behind them by implementing the core mechanisms from scratch.
+
+This project focuses on learning and demonstrating:
 
 - 🔐 JWT Authentication
 - ⚡ Redis-backed Rate Limiting
 - 🔄 Round-Robin Load Balancing
 - 🛡️ Three-State Circuit Breaker
-- 📊 Live Health Monitoring
-- 🐳 Dockerized Microservice Environment
+- ❤️ Health Monitoring
+- 🐳 Dockerized Microservices
 - ✅ Automated Testing & CI/CD
 
-Built with **Node.js**, **TypeScript**, **Express**, **Redis**, **Docker**, and **PostgreSQL**.
-
 ---
+
 
 ## 🎯 Project Goals
 
@@ -64,22 +82,23 @@ This project focuses on implementing the core building blocks of production gate
                                                                               circuit breaker)
 ```
 
-## 🤔 Why build an API Gateway?
+## 🤔 Why Build Another API Gateway?
 
 Production gateways such as **Kong**, **Envoy**, and **Traefik** already solve these problems exceptionally well.
 
-The goal of Aegis was **never** to replace them.
+The goal of **Aegis** was **never** to replace them.
 
-Instead, it was an engineering exercise to understand the mechanisms that make these systems reliable:
+Instead, I wanted to understand the engineering trade-offs behind modern API gateways by implementing their core building blocks myself:
 
 - Authentication
 - Request Routing
+- Reverse Proxying
 - Distributed Rate Limiting
-- Load Balancing
 - Circuit Breakers
 - Fault Tolerance
+- Load Balancing
 
-Building these components from scratch provided a much deeper understanding than simply configuring existing software.
+Building these mechanisms from scratch taught me significantly more than simply configuring an existing gateway.
 
 ### Request Flow
 
@@ -307,12 +326,14 @@ Pipeline: **test → coverage → build → push** — see `.github/workflows/ci
 - [ ] Grafana dashboards
 - [ ] OpenTelemetry tracing
 - [ ] Dynamic service discovery
-- [ ] Configuration dashboard
-- [ ] gRPC support
 - [ ] Kubernetes deployment
+- [ ] Admin dashboard
+- [ ] Web UI configuration
 
 ---
 
+## 👨‍💻 Author
+
 Built with ❤️ by **Younes Hebaiche**
 
-If you found this project interesting, feel free to ⭐ the repository.
+If you found this project useful or interesting, consider giving it a ⭐️.

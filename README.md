@@ -1,15 +1,40 @@
-# Aegis 🛡️
+# 🛡️ Aegis
+
+<p align="center">
+  <img src="./docs/demo.gif" alt="Aegis Demo" width="900"/>
+</p>
+
+<p align="center">
 
 ![CI/CD](https://github.com/0xYurii/Aegis/actions/workflows/ci.yml/badge.svg)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
 
-> A production-grade API Gateway built from scratch 
+</p>
 
-> Sits in front of your microservices and handles routing, auth, rate limiting, load balancing, and fault tolerance.
+> **I built Aegis to understand how production API gateways like Kong and Envoy actually work—not by configuring them, but by implementing their core mechanisms from scratch.**
+
+Aegis is a production-inspired API Gateway implementing:
+
+- 🔐 JWT Authentication
+- ⚡ Redis-backed Rate Limiting
+- 🔄 Round-Robin Load Balancing
+- 🛡️ Three-State Circuit Breaker
+- 📊 Live Health Monitoring
+- 🐳 Dockerized Microservice Environment
+- ✅ Automated Testing & CI/CD
+
+Built with **Node.js**, **TypeScript**, **Express**, **Redis**, **Docker**, and **PostgreSQL**.
 
 ---
+
+## 🎯 Project Goals
+
+Instead of treating modern API gateways as black boxes, I wanted to understand the engineering decisions behind them.
+
+This project focuses on implementing the core building blocks of production gateways while keeping the architecture simple enough to study and extend.
+
 
 ## Architecture
 
@@ -38,6 +63,23 @@
                                                                                (skipped by
                                                                               circuit breaker)
 ```
+
+## 🤔 Why build an API Gateway?
+
+Production gateways such as **Kong**, **Envoy**, and **Traefik** already solve these problems exceptionally well.
+
+The goal of Aegis was **never** to replace them.
+
+Instead, it was an engineering exercise to understand the mechanisms that make these systems reliable:
+
+- Authentication
+- Request Routing
+- Distributed Rate Limiting
+- Load Balancing
+- Circuit Breakers
+- Fault Tolerance
+
+Building these components from scratch provided a much deeper understanding than simply configuring existing software.
 
 ### Request Flow
 
@@ -71,7 +113,7 @@ CLOSED ──(3 failures)──► OPEN ──(60s pass)──► HALF_OPEN
 
 ---
 
-## Features
+## Core Components
 
 | Plugin | What it does |
 |---|---|
@@ -217,6 +259,18 @@ curl http://localhost:8000/gateway/stats
 
 ---
 
+## 📚 Lessons Learned
+
+Building Aegis changed how I think about backend infrastructure.
+
+Some of the biggest takeaways were:
+
+- Circuit breakers are simple in theory but surprisingly subtle to implement correctly.
+- Failure handling often matters more than the happy path.
+- Redis introduces consistency and performance trade-offs that don't appear in single-process applications.
+- Good logging and request tracing dramatically simplify debugging distributed systems.
+- Docker networking makes local microservice development significantly easier.
+
 ## CI/CD
 
 Every push runs the full test suite with coverage. On merge to `main`, Docker images for the gateway and both fake services are built and published to GitHub Container Registry automatically:
@@ -231,7 +285,7 @@ Pipeline: **test → coverage → build → push** — see `.github/workflows/ci
 
 ---
 
-## Stack
+## Tech Stack
 
 | | |
 |---|---|
@@ -247,4 +301,18 @@ Pipeline: **test → coverage → build → push** — see `.github/workflows/ci
 
 ---
 
-*Built by [Younes Hebaiche](https://0xyuri.vercel.app)*
+## 🚀 Future Improvements
+
+- [ ] Prometheus metrics
+- [ ] Grafana dashboards
+- [ ] OpenTelemetry tracing
+- [ ] Dynamic service discovery
+- [ ] Configuration dashboard
+- [ ] gRPC support
+- [ ] Kubernetes deployment
+
+---
+
+Built with ❤️ by **Younes Hebaiche**
+
+If you found this project interesting, feel free to ⭐ the repository.
